@@ -1,0 +1,156 @@
+services:
+  message_queue:
+    image: rabbitmq:3-management-alpine
+    networks:
+      my-overlay-network:
+        aliases:
+          - message-queue
+  db:
+    image: zoranashura402/database
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - my-overlay-network
+  session_service:
+    image:  zoranashura402/session-service
+    ports:
+      - "8081:8081"
+    networks:
+      my-overlay-network:
+        aliases:
+          - session-service
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: users_db
+    command: java -jar /app/app.jar
+    depends_on:
+      - db
+  hotel_service:
+    image: zoranashura402/hotel-service
+    networks:
+      my-overlay-network:
+        aliases:
+          - hotel-service
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: hotels_db
+    command: java -jar /app/app.jar
+    depends_on:
+      - db
+  payment_service:
+    image: zoranashura402/payment-service
+    networks:
+      my-overlay-network:
+        aliases:
+          - payment-service
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: payments_db
+    command: java -jar /app/app.jar
+    depends_on:
+      - db
+  loyalty_service:
+    image: zoranashura402/loyalty-service
+    networks:
+      my-overlay-network:
+        aliases:
+          - loyalty-service
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      POSTGRES_USER : postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: balances_db
+    command: java -jar /app/app.jar
+    depends_on:
+      - db
+  report_service:
+    image: zoranashura402/report-service
+    networks:
+      my-overlay-network:
+        aliases:
+          - report-service
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: statistics_db
+      RABBIT_MQ_HOST: message-queue
+      RABBIT_MQ_PORT: 5672
+      RABBIT_MQ_USER: guest
+      RABBIT_MQ_PASSWORD: guest
+      RABBIT_MQ_QUEUE_NAME: messagequeue
+      RABBIT_MQ_EXCHANGE: messagequeue-exchange
+    command: java -jar /app/app.jar
+    depends_on:
+      - db
+      - message_queue
+  booking_service:
+    image: booking
+    networks:
+      my-overlay-network:
+        aliases:
+          - booking-service
+    ports:
+      - "8083:8083"
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: reservations_db
+      RABBIT_MQ_HOST: message-queue
+      RABBIT_MQ_PORT: 5672
+      RABBIT_MQ_USER: guest
+      RABBIT_MQ_PASSWORD: guest
+      RABBIT_MQ_QUEUE_NAME: messagequeue
+      RABBIT_MQ_EXCHANGE: messagequeue-exchange
+      HOTEL_SERVICE_HOST: hotel-service
+      HOTEL_SERVICE_PORT: 8082
+      PAYMENT_SERVICE_HOST: payment-service
+      PAYMENT_SERVICE_PORT: 8084
+      LOYALTY_SERVICE_HOST: loyalty-service
+      LOYALTY_SERVICE_PORT: 8085
+    command: java -jar /app/app.jar
+    depends_on:
+      - db
+      - message_queue
+      - hotel_service
+      - payment_service
+      - loyalty_service
+  gateway_service:
+    image: zoranashura402/gateway-service
+    ports:
+      - 8087:8087
+    networks:
+      - my-overlay-network
+    environment:
+      SESSION_SERVICE_HOST: session-service
+      SESSION_SERVICE_PORT: 8081
+      HOTEL_SERVICE_HOST: hotel-service
+      HOTEL_SERVICE_PORT: 8082
+      BOOKING_SERVICE_HOST: booking-service
+      BOOKING_SERVICE_PORT: 8083
+      PAYMENT_SERVICE_HOST: payment-service
+      PAYMENT_SERVICE_PORT: 8084
+      LOYALTY_SERVICE_HOST: loyalty-service
+      LOYALTY_SERVICE_PORT: 8085
+      REPORT_SERVICE_HOST: report-service
+      REPORT_SERVICE_PORT: 8086
+    command: java -jar /app/app.jar
+volumes:
+  postgres_data:
+networks:
+  my-overlay-network:
+    driver: overlay
+    attachable: true
