@@ -12,7 +12,7 @@ services:
     networks:
       - my-overlay-network
   session_service:
-    image:  zoranashura402/session-service
+    image: session
     ports:
       - "8081:8081"
     networks:
@@ -131,7 +131,7 @@ services:
       - payment_service
       - loyalty_service
   gateway_service:
-    image: zoranashura402/gateway-service
+    image: gateway
     ports:
       - 8087:8087
     networks:

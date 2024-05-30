@@ -1,5 +1,8 @@
 package com.s21.devops.sample.sessionservice.Controller;
 
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+
 import com.s21.devops.sample.sessionservice.Communication.CreateUserReq;
 import com.s21.devops.sample.sessionservice.Communication.UserUidRes;
 import com.s21.devops.sample.sessionservice.Exception.CustomJwtException;
@@ -29,10 +32,19 @@ public class SessionController {
     @Autowired
     private SessionService sessionService;
 
+    Counter authCounter;
+
+    public SessionController(MeterRegistry registry) {
+      authCounter = Counter.builder("auth_counter")
+        .description("Number of user authorization requests received")
+        .register(registry);
+    }
+
     @GetMapping("/authorize")
     public ResponseEntity<Void> authorize(@RequestHeader("authorization") String authorization)
             throws InvalidKeySpecException, NoSuchAlgorithmException, EntityNotFoundException, RoleNotFoundException {
         String jwtToken = sessionService.authorize(authorization);
+	authCounter.increment();
         return ResponseEntity.ok().header("Authorization", "Bearer " + jwtToken).header("Access-Control-Expose-Headers", "authorization").build();
     }
 
