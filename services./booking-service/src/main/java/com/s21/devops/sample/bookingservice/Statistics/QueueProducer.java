@@ -21,11 +21,11 @@ public class QueueProducer {
     @Autowired
     private RabbitTemplate rabbitTemplate;
     
-    Counter visitCounter;
+    Counter messagesCounter;
 
     public QueueProducer(MeterRegistry registry) {
-      visitCounter = Counter.builder("visit_counter")
-        .description("Number of visits to the site")
+      messagesCounter = Counter.builder("sent_rabbitmq")
+        .description("number of messages sent to rabbitmq")
         .register(registry);
     }
     private ObjectMapper objectMapper = new ObjectMapper();
@@ -35,6 +35,6 @@ public class QueueProducer {
         rabbitTemplate.setExchange(fanoutExchange);
         rabbitTemplate.convertAndSend(objectMapper.writeValueAsString(bookingStatisticsMessage));
         System.out.println("Message was sent successfully!");
-	visitCounter.increment();
+	messagesCounter.increment();
     }
 }

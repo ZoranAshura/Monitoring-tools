@@ -74,11 +74,13 @@ services:
     depends_on:
       - db
   report_service:
-    image: zoranashura402/report-service
+    image: report
     networks:
       my-overlay-network:
         aliases:
           - report-service
+    ports:
+      - "8086:8086"
     environment:
       POSTGRES_HOST: db
       POSTGRES_PORT: 5432

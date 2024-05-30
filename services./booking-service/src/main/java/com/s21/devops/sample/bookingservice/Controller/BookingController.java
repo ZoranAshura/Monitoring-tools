@@ -1,5 +1,9 @@
 package com.s21.devops.sample.bookingservice.Controller;
 
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.s21.devops.sample.bookingservice.Communication.*;
 import com.s21.devops.sample.bookingservice.Exception.*;
@@ -36,6 +40,14 @@ public class BookingController {
         String jwtToken = securityService.authorize(authorization);
         return ResponseEntity.ok().header("Authorization", "Bearer " + jwtToken).build();
     }
+    Counter bookingCounter;
+
+    public BookingController(MeterRegistry registry) {
+      bookingCounter = Counter.builder("booking_counter")
+        .description("Number of bookings")
+        .register(registry);
+    }
+
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("")
@@ -44,6 +56,7 @@ public class BookingController {
             CustomRuntimeException, PaymentNotFoundException, LoyaltyNotFoundException, JsonProcessingException, CoudntPayException {
         System.out.println("hotel was booked");
         bookingService.bookHotel(bookHotelReq);
+	bookingCounter.increment();
     }
 
     @ResponseStatus(HttpStatus.NO_CONTENT)
