@@ -1,14 +1,10 @@
 package com.s21.devops.sample.bookingservice.Model;
 
-import io.micrometer.core.instrument.Counter;
-import io.micrometer.core.instrument.MeterRegistry;
-
 
 import javax.persistence.*;
 import java.time.LocalDate;
 import java.util.UUID;
 
-@RestController
 @Entity
 @Table(name = "reservation", schema = "public")
 public class Reservation {
@@ -33,14 +29,6 @@ public class Reservation {
 
     @Column(name = "date")
     private LocalDate date;
-    
-    Counter Counter;
-
-    public Reservation(MeterRegistry registry) {
-      visitCounter = Counter.builder("visit_counter")
-        .description("Number of visits to the site")
-        .register(registry);
-    }
 
     public Integer getReservation_id() {
         return reservation_id;

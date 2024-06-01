@@ -1,5 +1,6 @@
 package com.s21.devops.sample.bookingservice.Model;
 
+
 import java.util.UUID;
 
 public class ReservationCount {
