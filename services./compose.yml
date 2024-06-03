@@ -15,9 +15,10 @@ services:
     image: grafana/promtail:latest
     container_name: promtail
     volumes:
-      - ./data/promtail/promtail-local-config.yaml:/etc/promtail/promtail-local-config.yaml
+      - ./data/promtail/promtail.yaml:/etc/promtail/promtail.yaml
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
-    command: -config.file=/etc/promtail/promtail-local-config.yaml
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: -config.file=/etc/promtail/promtail.yaml
   grafana:
     container_name: grafana
     image: grafana/grafana:latest
@@ -41,6 +42,9 @@ services:
   session_service:
     container_name: session-service
     image: session
+    labels:
+      logging: "promtail"
+      logging_jobname: "containerlogs"
     ports:
       - "8081:8081"
         #    networks:
