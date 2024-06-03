@@ -1,64 +1,62 @@
 services:
   loki:
-    image: grafana/loki:2.9.0
-    networks:
-      my-overlay-network:
+    image: grafana/loki:3.0.0
+    container_name: loki
+      #  networks:
+      # my-overlay-network:
+      #  aliases:
+      #   - loki
     ports:
       - "3100:3100"
     command: -config.file=/etc/loki/local-config.yaml
+    volumes:
+      - ./data/loki/loki-local-config.yaml:/etc/loki/loki-local-config.yaml
+  promtail:
+    image: grafana/promtail:latest
+    container_name: promtail
+    volumes:
+      - ./data/promtail/promtail-local-config.yaml:/etc/promtail/promtail-local-config.yaml
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+    command: -config.file=/etc/promtail/promtail-local-config.yaml
   grafana:
+    container_name: grafana
     image: grafana/grafana:latest
     ports:
       - "3000:3000"
-    networks:
-      my-overlay-network:
+        #    networks#:
+        #      my-overlay-network:
+        #  aliases:
+        # - grafana
     environment:
       - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
       - GF_AUTH_ANONYMOUS_ENABLED=true
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
-    entrypoint:
-      - /bin/sh
-      - -c
-      - |
-        mkdir -p /etc/grafana/provisioning/datasources
-        echo "
-        apiVersion: 1
-        datasources:
-        - name: Loki
-          type: loki
-          access: proxy
-          orgId: 1
-          url: http://loki:3100
-          basicAuth: false
-          isDefault: true
-          version: 1
-          editable: false
-        " > /etc/grafana/provisioning/datasources/ds.yaml
-        /run.sh
   db:
     image: zoranashura402/database
+    container_name: db
       #   volumes:
       # - postgres_data:/var/lib/postgresql/data
-    networks:
-      - my-overlay-network
+      #    networks:
+      # - my-overlay-network
   session_service:
+    container_name: session-service
     image: session
     ports:
       - "8081:8081"
-    networks:
-      my-overlay-network:
-        aliases:
-          - session-service
+        #    networks:
+        # my-overlay-network:
+        # aliases:
+        #  - session-service
     environment:
       POSTGRES_HOST: db
       POSTGRES_PORT: 5432
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: users_db
-    command: java -jar /app/app.jar
+    command: java -jar /app/app.jar;
     depends_on:
       - db
-networks:
-  my-overlay-network:
-    driver: overlay
-    attachable: true
+        #networks:
+  # my-overlay-network:
+    #    driver: overlay
+      #    attachable: true
