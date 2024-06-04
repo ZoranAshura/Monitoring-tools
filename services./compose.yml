@@ -2,8 +2,8 @@ services:
   loki:
     image: grafana/loki:3.0.0
     container_name: loki
-      #  networks:
-      # my-overlay-network:
+    networks:
+      my-overlay-network:
       #  aliases:
       #   - loki
     ports:
@@ -14,8 +14,15 @@ services:
   promtail:
     image: grafana/promtail:latest
     container_name: promtail
+    deploy:
+      mode: global
+    networks:
+      my-overlay-network:
+    configs:
+      - source: promtail_config
+        target: /etc/promtail/promtail.yaml
     volumes:
-      - ./data/promtail/promtail.yaml:/etc/promtail/promtail.yaml
+      # - ./data/promtail/promtail.yaml:/etc/promtail/promtail.yaml
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
       - /var/run/docker.sock:/var/run/docker.sock
     command: -config.file=/etc/promtail/promtail.yaml
@@ -24,8 +31,8 @@ services:
     image: grafana/grafana:latest
     ports:
       - "3000:3000"
-        #    networks#:
-        #      my-overlay-network:
+    networks:
+      my-overlay-network:
         #  aliases:
         # - grafana
     environment:
@@ -37,8 +44,8 @@ services:
     container_name: db
       #   volumes:
       # - postgres_data:/var/lib/postgresql/data
-      #    networks:
-      # - my-overlay-network
+    networks:
+      my-overlay-network:
   session_service:
     container_name: session-service
     image: session
@@ -47,20 +54,59 @@ services:
       logging_jobname: "containerlogs"
     ports:
       - "8081:8081"
-        #    networks:
-        # my-overlay-network:
-        # aliases:
-        #  - session-service
+    networks:
+      my-overlay-network:
+        aliases:
+          - session-service
     environment:
       POSTGRES_HOST: db
       POSTGRES_PORT: 5432
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: users_db
-    command: java -jar /app/app.jar;
+    command: java -jar /app/app.jar
     depends_on:
       - db
-        #networks:
-  # my-overlay-network:
-    #    driver: overlay
-      #    attachable: true
+  loyalty_service:
+    image: zoranashura402/loyalty-service
+    labels:
+      logging: "promtail"
+      logging_jobname: "containerlogs"
+    networks:
+      my-overlay-network:
+        aliases:
+          - loyalty-service
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      POSTGRES_USER : postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: balances_db
+    command: java -jar /app/app.jar
+    depends_on:
+      - db
+  payment_service:
+    image: zoranashura402/payment-service
+    labels:
+      logging: "promtail"
+      logging_jobname: "containerlogs"
+    networks:
+      my-overlay-network:
+        aliases:
+          - payment-service
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: payments_db
+    command: java -jar /app/app.jar
+    depends_on:
+      - db
+networks:
+  my-overlay-network:
+    driver: overlay
+    attachable: true
+configs:
+  promtail_config:
+    external: true
