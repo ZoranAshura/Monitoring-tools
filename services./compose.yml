@@ -4,13 +4,12 @@ services:
     container_name: loki
     networks:
       my-overlay-network:
-      #  aliases:
-      #   - loki
     ports:
       - "3100:3100"
+    configs:
+      - source: loki_config
+        target: /etc/loki/loki-local-config.yaml
     command: -config.file=/etc/loki/local-config.yaml
-    volumes:
-      - ./data/loki/loki-local-config.yaml:/etc/loki/loki-local-config.yaml
   promtail:
     image: grafana/promtail:latest
     container_name: promtail
@@ -22,7 +21,6 @@ services:
       - source: promtail_config
         target: /etc/promtail/promtail.yaml
     volumes:
-      # - ./data/promtail/promtail.yaml:/etc/promtail/promtail.yaml
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
       - /var/run/docker.sock:/var/run/docker.sock
     command: -config.file=/etc/promtail/promtail.yaml
@@ -33,8 +31,6 @@ services:
       - "3000:3000"
     networks:
       my-overlay-network:
-        #  aliases:
-        # - grafana
     environment:
       - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
       - GF_AUTH_ANONYMOUS_ENABLED=true
@@ -48,7 +44,7 @@ services:
       my-overlay-network:
   session_service:
     container_name: session-service
-    image: session
+    image: zoranashura402/session
     labels:
       logging: "promtail"
       logging_jobname: "containerlogs"
@@ -109,4 +105,6 @@ networks:
     attachable: true
 configs:
   promtail_config:
+    external: true
+  loki_config:
     external: true
