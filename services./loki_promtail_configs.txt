@@ -1,0 +1,2 @@
+sudo docker config create promtail_config ./data/promtail/promtail.yaml
+sudo docker config create loki_config ./data/loki/loki-local-config.yaml

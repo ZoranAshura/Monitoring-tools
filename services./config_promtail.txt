@@ -1,1 +1,0 @@
-sudo docker config create promtail_config ./data/promtail/promtail.yaml
