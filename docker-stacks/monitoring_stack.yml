@@ -7,11 +7,13 @@ configs:
     external: true
   loki_config:
     external: true
+  blackbox_config:
+    external: true
 services:
   loki:
     image: grafana/loki:3.0.0
     networks:
-      my-overlay-network:
+      - my-overlay-network
     ports:
       - "3100:3100"
     configs:
@@ -19,11 +21,11 @@ services:
         target: /etc/loki/loki-local-config.yaml
     command: -config.file=/etc/loki/local-config.yaml
   promtail:
-    image: grafana/promtail:latest
+    image: grafana/promtail:main-86b119a
     deploy:
       mode: global
     networks:
-      my-overlay-network:
+      - my-overlay-network
     configs:
       - source: promtail_config
         target: /etc/promtail/promtail.yaml
@@ -32,19 +34,28 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     command: -config.file=/etc/promtail/promtail.yaml
   grafana:
-    image: grafana/grafana:latest
+    image: grafana/grafana:11.0.0
     ports:
       - "3000:3000"
     networks:
-      my-overlay-network:
+      - my-overlay-network
     environment:
       - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
       - GF_AUTH_ANONYMOUS_ENABLED=true
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
-  cadvisor:
-    image:  gcr.io/cadvisor/cadvisor
+  blackbox-exporter:
+    image: prom/blackbox-exporter:v0.25.0
+    command: '--config.file=/etc/prometheus/blackbox.yml'
+    hostname: '{{.Node.ID}}'
+    configs:
+      - source: blackbox_config
+        target: /etc/prometheus/blackbox.yml
     networks:
-      my-overlay-network:
+      - my-overlay-network
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor
+    networks:
+      - my-overlay-network
     command: -logtostderr -docker_only
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
@@ -62,7 +73,7 @@ services:
   node-exporter:
     image: prom/node-exporter:v1.8.1
     networks:
-      my-overlay-network:
+      - my-overlay-network
     environment:
       - NODE_ID={{.Node.ID}}
     volumes:
@@ -88,11 +99,11 @@ services:
     ports:
       - "9090:9090"
     networks:
-      my-overlay-network:
+      - my-overlay-network
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
     volumes:
-      - ./data/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ../configs/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
     deploy:
       mode: replicated
       replicas: 1

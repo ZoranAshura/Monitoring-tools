@@ -156,7 +156,9 @@ services:
     ports:
       - 8087:8087
     networks:
-      - my-overlay-network
+      my-overlay-network:
+        aliases:
+          - gateway-service
     environment:
       SESSION_SERVICE_HOST: session-service
       SESSION_SERVICE_PORT: 8081
