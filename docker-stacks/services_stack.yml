@@ -94,8 +94,6 @@ services:
       my-overlay-network:
         aliases:
           - report-service
-    ports:
-      - "8086:8086"
     environment:
       POSTGRES_HOST: db
       POSTGRES_PORT: 5432
@@ -121,8 +119,6 @@ services:
       my-overlay-network:
         aliases:
           - booking-service
-    ports:
-      - "8083:8083"
     environment:
       POSTGRES_HOST: db
       POSTGRES_PORT: 5432
@@ -176,6 +172,9 @@ services:
 volumes:
   postgres_data:
 networks:
+  #my-overlay-network:
+    #driver: overlay
+      # attachable: true
   my-overlay-network:
-    driver: overlay
-    attachable: true
+    external: true
+      #name: my-overlay-network

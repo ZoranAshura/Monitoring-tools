@@ -1,7 +1,10 @@
 networks:
+  #my-overlay-network:
+    #driver: overlay
+      # attachable: true
   my-overlay-network:
-    driver: overlay
-    attachable: true
+    external: true
+      #name: my-overlay-network
 configs:
   promtail_config:
     external: true
@@ -14,8 +17,6 @@ services:
     image: grafana/loki:3.0.0
     networks:
       - my-overlay-network
-    ports:
-      - "3100:3100"
     configs:
       - source: loki_config
         target: /etc/loki/loki-local-config.yaml
