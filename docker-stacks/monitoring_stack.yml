@@ -1,3 +1,6 @@
+volumes:
+  grafana_data:
+    #external: true
 networks:
   #my-overlay-network:
     #driver: overlay
@@ -38,16 +41,30 @@ services:
     image: grafana/grafana:11.0.0
     ports:
       - "3000:3000"
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
     networks:
       - my-overlay-network
     environment:
       - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
       - GF_AUTH_ANONYMOUS_ENABLED=true
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+    volumes:
+      - grafana_data:/var/lib/grafana
   blackbox-exporter:
     image: prom/blackbox-exporter:v0.25.0
     command: '--config.file=/etc/prometheus/blackbox.yml'
     hostname: '{{.Node.ID}}'
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
     configs:
       - source: blackbox_config
         target: /etc/prometheus/blackbox.yml
@@ -110,7 +127,7 @@ services:
       replicas: 1
       placement:
         constraints:
-          - node.role == manager
+          - node.hostname == node1
       resources:
         limits:
           memory: 2048M
