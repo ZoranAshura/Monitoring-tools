@@ -1,0 +1,34 @@
+groups:
+  - name: alert_rules
+    rules:
+      - alert: CPUusage
+        expr: sum(rate(container_cpu_usage_seconds_total[5m])) by (name) * 100 > 10
+        labels:
+          severity: warning
+        annotations:
+          summary: "CPU usage for the service exceeds 10%"
+          description: "CPU usage for the service exceeds 10%"
+
+      - alert: TestAlert
+        expr: auth_counter_total > 1
+        labels:
+          severity: warning
+        annotations:
+          summary: "Some test"
+          description: "Somebody once told me the wolrd is gonna roll me"
+
+      - alert: LowMemory
+        expr: 100 - ((node_filesystem_avail_bytes * 100) / node_filesystem_size_bytes) > 80
+        labels:
+          severity: warning
+        annotations:
+          summary: "available HDD memory is less than 20%"
+          description: "Your hard drive will be out of memory soon"
+
+      - alert: LowMemory
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 80
+        labels:
+          severity: warning
+        annotations:
+          summary: "available RAM memory is less than 20%"
+          description: "Your node will be out of memory soon"

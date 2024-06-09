@@ -1,5 +1,6 @@
 volumes:
-  grafana_data:
+  grafana_data: {}
+  alertmanager-data: {}
     #external: true
 networks:
   #my-overlay-network:
@@ -122,6 +123,7 @@ services:
       - '--config.file=/etc/prometheus/prometheus.yml'
     volumes:
       - ../configs/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ../configs/prometheus/rules.yml:/etc/prometheus/rules.yml
     deploy:
       mode: replicated
       replicas: 1
@@ -133,3 +135,27 @@ services:
           memory: 2048M
         reservations:
           memory: 128M
+  alertmanager:
+    image:  prom/alertmanager:v0.27.0
+    networks:
+      my-overlay-network:
+        aliases:
+          - alertmanager
+    ports:
+      - "9093:9093"
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+    volumes:
+      - ../configs/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+        #   - alertmanager-data:/data
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 64M

@@ -35,7 +35,7 @@
 ![1.8](./images/part_1/1.10.png)
 
 ## Part 2. Visualization
-### Add a dashboard with the following metrics to grafana:
+### 1.Add a dashboard with the following metrics to grafana:
 -   number of nodes;
 -   number of containers;
 -   number of stacks;
@@ -52,19 +52,35 @@
 -   number of user authorization requests received;
 -   application logs.
 
-### Custom metrics from spring boot services
+#### 2. Custom metrics from spring boot services
 ![2.1](./images/part_2/2.1.png)
 ![2.2](./images/part_2/2.2.png)
 ![2.3](./images/part_2/2.3.png)
 
-### Cadvisor's metrics
+#### 3. Cadvisor's metrics
 ![2.4](./images/part_2/2.4.png)
 
-### Node exporter's metrics
+#### 4. Node exporter's metrics
 ![2.5](./images/part_2/2.5.png)
 
-### Blackbox exporter's metrics
+#### 5. Blackbox exporter's metrics
 ![2.6](./images/part_2/2.6.png)
 
-### Application logs - Loki
+#### 6. Application logs - Loki
 ![2.7](./images/part_2/2.7.png)
+
+## Part 3. Critical event monitoring
+
+#### 1. Deploy alert manager as a new service in the monitored stack
+![3.1](./images/part_3/3.1.png)
+
+#### 2. Add the following critical events:
+- available memory is less than 100 mb;
+- spent RAM is more than 1gb;
+- CPU usage for the service exceeds 10%.
+![3.2](./images/part_3/3.2.png)
+
+#### 3. Configure notifications via personal email or Telegram.
+![3.2](./images/part_3/3.3.png)
+![3.2](./images/part_3/3.4.png)
+
